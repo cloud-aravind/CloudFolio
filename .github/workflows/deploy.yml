@@ -1,0 +1,38 @@
+name: Deploy our static website content to s3 bucket
+on:
+  push:
+    branches:
+      - main  # Triggers deployment on pushes to the 'main' branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Install dependencies if your project requires a build step
+      - name: Install dependencies
+        run: npm install  # Use your package manager if different
+
+      # Build the static site (if required)
+      - name: Build Site
+        run: npm run build  # Adjust this to your build command if needed
+
+      - name: Sync files to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1  # Adjust the AWS region if needed
+        run: |
+          aws s3 sync ./build s3://${{ secrets.AWS_S3_BUCKET }} --delete
+          # `./build` is the folder containing your static site files; adjust if different
+
+      - name: Invalidate CloudFront cache
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
