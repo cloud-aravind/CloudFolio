@@ -12,14 +12,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Install dependencies if your project requires a build step
-      - name: Install dependencies
-        run: npm install  # Use your package manager if different
-
-      # Build the static site (if required)
-      - name: Build Site
-        run: npm run build  # Adjust this to your build command if needed
-
       - name: Sync files to S3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
